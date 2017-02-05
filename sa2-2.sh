@@ -1,5 +1,4 @@
 #!/bin/sh
-
 mkdir -p ~/.mybrowser
 touch ~/.mybrowser/bookmark
 touch ~/.mybrowser/error

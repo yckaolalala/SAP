@@ -1,0 +1,58 @@
+#!/bin/sh
+
+reload(){
+	enabled="yes";
+
+	config=$(cat $file)
+}
+
+trap reload SIGHUP
+
+
+enabled="yes";
+file=$1
+config=$(cat $1)
+
+
+m=0
+date1=$(date +%s)
+while : ; do 
+	sleep 0.8	
+	date2=$(date +%s)
+	sec=$((date2-date1))
+	for i in $config; do
+		if echo "$i" | grep -q "\["; then
+			enabled="yes"
+			name=${i#*[}
+			name=${name%]*}
+		
+		elif echo "$i" | grep -q "enabled=" ; then
+			enabled=${i#*enabled=}
+		elif echo "$i" | grep -q "policy=" ; then
+			policy=${i#*policy=}
+			rotation=${policy%x*}
+			time=${policy#*x}
+			num=$(echo "$time" | rev | cut -c 2- | rev)			
+			if echo "$time" | grep -q 'm' ;then
+				num=$((num*1*60))
+			elif echo "$time" | grep -q 'h' ;then
+				num=$((num*60*60))
+			elif echo "$time" | grep -q 'd' ;then
+				num=$((num*1440*60))
+			elif echo "$time" | grep -q 'w' ;then
+				num=$((num*10080*60))
+			else
+				echo "config error"
+				exit 1
+			fi
+			flag=$((sec%num)) 
+			if [ $enabled = "yes" ] && [ $flag -eq 0 ];then
+				zbackup $name $rotation
+			fi
+			enabled="yes"
+		else
+			echo "config error"
+			exit 1
+		fi
+	done
+done

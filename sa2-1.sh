@@ -1,5 +1,4 @@
 #!/bin/sh
-
 ls -lAR | sort -rnk 5,5 | grep ^[-d] |
  awk '{
         if($1 ~ /^d/) dir ++ ;
